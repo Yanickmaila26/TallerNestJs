@@ -1,26 +1,19 @@
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+
+@Entity('users') // Nombre de la tabla en MySQL
 export class User {
-    /**
-     * Identificador único del usuario (ID autoincremental)
-     */
+    @PrimaryGeneratedColumn()
     id: number;
 
-    /**
-     * Nombre completo del usuario
-     */
+    @Column()
     nombre: string;
 
-    /**
-     * Correo electrónico (se usará como nombre de usuario para el login)
-     */
+    @Column({ unique: true }) // Evita emails duplicados a nivel DB
     email: string;
 
-    /**
-     * Contraseña del usuario (debe almacenarse siempre hasheada por seguridad)
-     */
+    @Column()
     password: string;
 
-    /**
-     * Fecha de creación del registro
-     */
+    @CreateDateColumn()
     createdAt: Date;
 }

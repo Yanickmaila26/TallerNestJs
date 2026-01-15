@@ -1,33 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
-  private idCounter = 1;
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) { }
 
-  create(userData: Omit<User, 'id' | 'createdAt'>): User {
-    const newUser: User = {
-      id: this.idCounter++,
-      ...userData,
-      createdAt: new Date(),
-    };
-    this.users.push(newUser);
-    return newUser;
+  // Cambiamos a async y el retorno a Promise
+  async create(userData: Omit<User, 'id' | 'createdAt'>): Promise<User> {
+    const newUser = this.usersRepository.create(userData);
+    return await this.usersRepository.save(newUser);
   }
 
-  // Lógica para buscar por email (usado en el Login)
-  findByEmail(email: string): User | undefined {
-    return this.users.find(user => user.email === email);
+  // TypeORM findOneBy devuelve una Promesa
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ email });
   }
 
-  // Lógica para buscar por ID (usado por el Guard)
-  findById(id: number): User | undefined {
-    return this.users.find(user => user.id === id);
+  async findById(id: number): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ id });
   }
 
-  // Retorna todos los usuarios pero oculta la contraseña por seguridad
-  findAll(): Omit<User, 'password'>[] {
-    return this.users.map(({ password, ...user }) => user);
+  // Para ocultar la contraseña en TypeORM usamos select
+  async findAll(): Promise<User[]> {
+    return await this.usersRepository.find({
+      select: ['id', 'nombre', 'email', 'createdAt']
+    });
   }
 }
